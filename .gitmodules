@@ -1,0 +1,3 @@
+[submodule "app_ucraft/UCraft"]
+	path = app_ucraft/UCraft
+	url = https://github.com/vimpop/UCraft.git
