@@ -13,36 +13,33 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-
+#include "tlsf.h"
+#include "mbedtls/platform.h"
+#include "config.h"
+tlsf_t tlsf_memory_region;
 // Endian swapping definitions
-#define __bswap_16(x) ((u16_t) ((((x) >> 8) & 0xff) | (((x) & 0xff) << 8)))
-#define __bswap_32(x) ((u32_t) ((((x) >> 24) & 0xff) | \
-                   (((x) >> 8) & 0xff00) | \
-                   (((x) & 0xff00) << 8) | \
-                   (((x) & 0xff) << 24)))
-#define __bswap_64(x) ((u64_t) ((((x) >> 56) & 0xff) | \
-                   (((x) >> 40) & 0xff00) | \
-                   (((x) >> 24) & 0xff0000) | \
-                   (((x) >> 8) & 0xff000000) | \
-                   (((x) & 0xff000000) << 8) | \
-                   (((x) & 0xff0000) << 24) | \
-                   (((x) & 0xff00) << 40) | \
-                   (((x) & 0xff) << 56)))
-
-
+#define __bswap_16(x) ((u16_t)((((x) >> 8) & 0xff) | (((x) & 0xff) << 8)))
+#define __bswap_32(x) ((u32_t)((((x) >> 24) & 0xff) |  \
+                               (((x) >> 8) & 0xff00) | \
+                               (((x) & 0xff00) << 8) | \
+                               (((x) & 0xff) << 24)))
+#define __bswap_64(x) ((u64_t)((((x) >> 56) & 0xff) |      \
+                               (((x) >> 40) & 0xff00) |    \
+                               (((x) >> 24) & 0xff0000) |  \
+                               (((x) >> 8) & 0xff000000) | \
+                               (((x) & 0xff000000) << 8) | \
+                               (((x) & 0xff0000) << 24) |  \
+                               (((x) & 0xff00) << 40) |    \
+                               (((x) & 0xff) << 56)))
 
 // Misc functions
-static inline void U_wrapperStart()
-{
-    return;
-}
 static inline void U_wrapperEnd()
 {
     return;
 }
 static inline void U_sleep(int msec)
 {
-      vTaskDelay(msec / portTICK_PERIOD_MS);
+    vTaskDelay(msec / portTICK_PERIOD_MS);
 }
 static inline uint64_t U_millis()
 {
@@ -134,14 +131,14 @@ static inline void *U_malloc(size_t size)
         printf("malloc(0) is not allowed\n");
         return NULL;
     }
-    return pvPortMalloc(size);
+    return tlsf_malloc(tlsf_memory_region, size);
 }
 
 static inline void *U_calloc(size_t nmemb, size_t size)
 {
     // use malloc
     void *p;
-    p = pvPortMalloc(nmemb * size);
+    p = tlsf_malloc(tlsf_memory_region, nmemb * size);
     if (p)
     {
         memset(p, 0, nmemb * size);
@@ -152,28 +149,22 @@ static inline void *U_calloc(size_t nmemb, size_t size)
 
 static inline void *U_realloc(void *ptr, size_t size)
 {
-    if (size == 0)
-    {
-        vPortFree(ptr);
-        return NULL;
-    }
-
-    void *p;
-    p = pvPortMalloc(size);
-    if (p)
-    {
-        /* zero the memory */
-        if (ptr != NULL)
-        {
-            memcpy(p, ptr, size);
-            vPortFree(ptr);
-        }
-    }
-    return p;
+    return tlsf_realloc(tlsf_memory_region, ptr, size);
 }
 
 static inline void U_free(void *ptr)
 {
-    free(ptr);
+    tlsf_free(tlsf_memory_region, ptr);
+    return;
+}
+
+static inline void U_wrapperStart()
+{
+    unsigned char *buffer = pvPortMalloc(1024 * 77);
+    tlsf_memory_region = tlsf_create_with_pool(buffer, 1024 * 77);
+#ifdef ONLINE_MODE
+    mbedtls_platform_set_calloc_free(U_calloc, U_free);
+#endif /*ONLINE_MODE*/
+    return;
 }
 #endif
