@@ -1,7 +1,15 @@
 # UCraft for BL602
 
 This repository contains an implementation of the UCraft Minecraft server adapted to run on the BL602 microcontroller.
+## Configuration
+The defualt SSID and PSK that the server connects to is defined under `main.c`
+```
+#define SSID "Einstein"
+#define PSK "germany101"
+```
+This should be changed according to your WIFI access point.
 
+For UCraft specifc configuration, they can be found under the `app_ucraft/UCraft/` folder
 ## Building
 The build system only supports linux due to the BL602 SDK (WSL works). So all steps below must be conducted in a linux enviorment with make installed (this can be installed by the `build-essential` package on ubuntu).
 Start by cloning the BL602 SDK and setting up the build enviorment:
