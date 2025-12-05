@@ -1,6 +1,9 @@
 # UCraft for BL602
 
 This repository contains an implementation of the UCraft Minecraft server adapted to run on the BL602 microcontroller.
+
+## Hardware
+[this](https://www.aliexpress.com/item/1005004192006982.html) was the exact lightbulb used but if its out of stock then what you're looking for is a lightbulb that supports the 'Techlife pro' app with cool light **only** since those usually contain the bl602 chip that is easily accessible. 
 ## Configuration
 The defualt SSID and PSK that the server connects to is defined under `main.c`
 ```
